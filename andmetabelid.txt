@@ -1,0 +1,2 @@
+Nonsens mõtted
+CREATE TABLE `if20_caroly_v_1`.`nonsens2` ( `id` INT(4) NOT NULL AUTO_INCREMENT , `nonsensidea` VARCHAR(256) NOT NULL , `deleted` DATETIME NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;
