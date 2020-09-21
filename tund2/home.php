@@ -1,59 +1,22 @@
 <?php
-  //loeme andmebaasi login info muutujad
-  require("../../../config.php");
-  //kui kasutaja on vormis andmeid saatnud, siis salvestame andmebaasi
-  $database = "if20_caroly_v_1";
-  if(isset($_POST["submitnonsens"])) {
-	  if(!empty($_POST["nonsens2"])) {
-		  //andmebaasi lisamine
-		  //loome andmebaasi ühenduse
-		  $conn = new mysqli($serverhost, $serverusername, $serverpassword, $database);
-		  //valmistame ette SQL käsu
-		  $stmt = $conn->prepare("INSERT INTO nonsens2 (nonsensidea) VALUES(?)");
-		  echo $conn->error;
-		  //s-string, i-integer, d-decimal
-		  $stmt->bind_param("s", $_POST["nonsens2"]);
-		  $stmt->execute();
-		  echo "tegutse";
-		  //käsk ja ühendus
-		  $stmt->close();
-		  $conn->close();
-	  }
-  }	  
-  //
-  
-  //loeme andmebaasist
-  $nonsens2html= "";
-  $conn = new mysqli($serverhost, $serverusername, $serverpassword, $database);
-  //valmistame ette SQL käsu
-  $stmt = $conn->prepare("SELECT nonsensidea FROM nonsens2");
-  echo $conn->error;
-  //seome tulemuse mingi muutujaga
-  $stmt->bind_result($nonsens2fromdb);
-  $stmt->execute();
-  //võtan, kuni on
-  while($stmt->fetch()) {
-	  //<p>suvaline mõte </p>
-	  $nonsens2html .= "<p>" .$nonsens2fromdb ."</p>";
-	  
-  }
-  $stmt->close();
-  $conn->close();
-  //ongi andmebaasist loetud
-  
+ 
   $username = "Caroly Vilo";
   $fulltimenow = date("d.m.Y H:i:s");
   $hournow = date("H");
   $partofday = "lihtsalt aeg";
+  $monthdaynow = date("d");
+  $timenow = date("H:i:s");
   
   //vaatame, mida vormist serverile saadetakse
-  var_dump($_POST);
+  //var_dump($_POST);
   
   $weekdaynameset = ["esmaspäev", "teisipäev", "kolmapäev", "neljapäev", "reede", "laupäev", "pühapäev"];
-  $monthNamesET = ["jaanuar", "veebruar", "märts", "aprill", "mai", "juuni", "juuli", "august", "september", "oktoober", "november", "detsember"];
+  $monthnameset = ["jaanuar", "veebruar", "märts", "aprill", "mai", "juuni", "juuli", "august", "september", "oktoober", "november", "detsember"];
   
   //küsime nädalapäeva
   $weekdaynow = date("N");
+  //küsime kuud
+  $monthnow = date("n");
   //echo $weekdaynow;
   
   if($hournow < 6){
@@ -90,7 +53,7 @@
   }
   if($fromsemesterstartdays > 0 and $fromsemesterstartdays < $semesterdurationdays){
 	  $semesterpercentage = ($fromsemesterstartdays / $semesterdurationdays) * 100;
-	  $semesterinfo = "Semester on täies hoos, kestab juba " .$fromsemesterstartdays ." päeva, läbitud on " .$semesterpercentage ."%.";
+	  $semesterinfo = "Semester on kestnud juba " .$fromsemesterstartdays ." päeva, läbitud on " .$semesterpercentage ."%.";
   }
   if($fromsemesterstartdays == $semesterdurationdays){
 	  $semesterinfo = "Semester lõppeb täna!";
@@ -124,11 +87,16 @@
   //$i += 1;
   //$i ++;
   $imghtml = "";
-  for($i = 0; $i < $piccount; $i ++) {
+  /*for($i = 0; $i < $piccount; $i ++) {
 	  //<img src="../img/vp_banner.png" alt="tekst"> 
-	  $imghtml .= '<img src="../vp_pics/' .$allpicfiles[$i] .'" ';
+	  $picnum = mt_rand(0, ($piccount - 1));
+	  $imghtml .= '<img src="../vp_pics/' .$allpicfiles[mt_rand(0, ($piccount -1))] .'" ';
 	  $imghtml .= 'alt="Tallinna Ülikool">';
-  }
+	  
+	  } */
+	   $imghtml .= '<img src="../vp_pics/' .$allpicfiles[mt_rand(0, ($piccount - 1))] .'" ';
+       $imghtml .= 'alt="Tallinna Ülikool">';
+ 
   
   require("header.php");
   
@@ -138,19 +106,18 @@
   <h1><?php echo $username; ?> programmeerib veebi</h1>
   <p>See veebileht on loodud õppetöö käigus ning ei sisalda mingit tõsiseltvõetavat sisu!</p>
   <p>Leht on loodud veebiprogrammeerimise kursusel <a href="http://www.tlu.ee">Tallinna Ülikooli</a> Digitehnoloogiate instituudis.</p>
-  <p>Lehe avamise aeg: <?php echo $weekdaynameset[$weekdaynow -1] .", " . $fulltimenow .", semestri algusest on möödunud " .$fromsemesterstartdays ." päeva"; ?>. 
+  <p>Lehe avamise aeg: <?php echo $weekdaynameset[$weekdaynow -1] .", " . $monthdaynow .". " . $monthnameset[$monthnow -1] ." kell ". $timenow . ", semestri algusest on möödunud " .$fromsemesterstartdays ." päeva"; ?>. 
   <?php echo "Parajasti on " .$partofday ."."; ?></p>
   <p><?php echo $semesterinfo; ?></p>
+  
+  <ul>
+    <li><a href="motetesisestus.php">Mõtete sisestus!</a></li>
+	<li><a href="motetelugemine.php">Mõtete lugemine!</a></li>
+	<li><a href="listfilms.php">Filmiinfo näitamine</a></li>
+	<li><a href="addfilms.php">Filmide lisamine</a></li>
+  </ul>
+  
   <hr>
   <?php echo $imghtml; ?>
-  <hr>
-  <form method="POST">
-    <label>Sisesta oma tänane mõttetu mõte1</label>
-	<input type="text" name="nonsens2" placeholder="mõttekoht">
-	<input type="submit" value="Saada ära!" name="submitnonsens">
-  </form>
-  <hr>
-  <?php echo $nonsens2html; ?>
-  <hr>
 </body>
 </html>
