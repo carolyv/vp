@@ -1,18 +1,12 @@
 <?php
- 
-  //$username = "Caroly Vilo";
+
+  require("../../../config.php");
+  require("fnc_user.php");
+  require("header.php");
+  require("fnc_common.php");
+  // Käivitame sessiooni
   session_start();
   
-  //kui pole sisseloginud
-  if(!isset($_SESSION["userid"])){
-	  header("Location: page.php");
-  } 
-  //väljalogimine
-  if(isset($_GET["logout"])){
-	  session_destroy();
-	  header("Location: page.php");
-	  exit();
-  }
   $fulltimenow = date("d.m.Y H:i:s");
   $hournow = date("H");
   $partofday = "lihtsalt aeg";
@@ -109,36 +103,63 @@
 	   $imghtml .= '<img src="../vp_pics/' .$allpicfiles[mt_rand(0, ($piccount - 1))] .'" ';
        $imghtml .= 'alt="Tallinna Ülikool">';
  
- //väljalogimine
-  if(isset($_GET["logout"])){
-	  session_destroy();
-	  header("Location: page.php");
-	  exit();
-  }  
-  
-  require("header.php");
-  
+  // Sisselogimise asjad
+  $passworderror = "";
+  $emailerror = "";
+  $password = "";
+  $email = "";
+  if(isset($_POST["submituserdata"])){
+	  if (!empty($_POST["emailinput"])){
+		//$email = test_input($_POST["emailinput"]);
+		$email = filter_var($_POST["emailinput"], FILTER_SANITIZE_EMAIL);
+		if(filter_var($email, FILTER_VALIDATE_EMAIL)) {
+			$email = filter_var($email, FILTER_VALIDATE_EMAIL);
+		} else {
+		  $emailerror = "Palun sisesta õige kujuga e-postiaadress!";
+		}		
+	  } else {
+		  $emailerror = "Palun sisesta e-postiaadress!";
+	  }
+	  
+	  if (empty($_POST["passwordinput"])){
+		$passworderror = "Palun sisesta salasõna!";
+	  } else {
+		  if(strlen($_POST["passwordinput"]) < 8){
+			  $passworderror = "Liiga lühike salasõna!";
+		  }
+	  }
+	  
+	  if(empty($emailerror) and empty($passworderror)){
+		  //echo "Jee" .$email .$_POST["passwordinput"];
+		  $notice = signin($email, $_POST["passwordinput"]);
+	  }
+  }
 ?>
 
   <img src="../img/vp_banner.png" alt="Veebiprogrammeerimise kursuse bänner"> 
-  <h1><?php echo $_SESSION["userfirstname"] ." " .$_SESSION["userlastname"]; ?> programmeerib veebi</h1>
+  <h1>Veebiprogrammeerimine</h1>
   <p>See veebileht on loodud õppetöö käigus ning ei sisalda mingit tõsiseltvõetavat sisu!</p>
   <p>Leht on loodud veebiprogrammeerimise kursusel <a href="http://www.tlu.ee">Tallinna Ülikooli</a> Digitehnoloogiate instituudis.</p>
   <p>Lehe avamise aeg: <?php echo $weekdaynameset[$weekdaynow -1] .", " . $monthdaynow .". " . $monthnameset[$monthnow -1] ." kell ". $timenow . ", semestri algusest on möödunud " .$fromsemesterstartdays ." päeva"; ?>. 
   <?php echo "Parajasti on " .$partofday ."."; ?></p>
   <p><?php echo $semesterinfo; ?></p>
-  <p><a href="?logout=1">Logi välja</a></p>
-  <ul>
-    <li><a href="motetesisestus.php">Mõtete sisestus!</a></li>
-	<li><a href="motetelugemine.php">Mõtete lugemine!</a></li>
-	<li><a href="listfilms.php">Filmiinfo näitamine</a></li>
-	<li><a href="addfilms.php">Filmide lisamine</a></li>
-	<li><a href="addfilmrelations.php">Filmi seoste määramine</a></li>
-	<li><a href="listfilmpersons.php">Filmitegelased</a></li>
-	<li><a href="profile.php">Kasutaja tegemine</a></li>
-	<li><a href="userprofile.php">Oma profiili haldamine</a></li>
-  </ul>
   
+  <ul>
+	<li><a href="profile.php">Kasutaja loomine</a></li>
+  </ul>
+  <hr>
+  <p>Sisselogimine<p>
+    <form method = "POST" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
+	  <label for="emailinput">E-post: </label>
+		<input type="email" name="emailinput" id="emailinput" placeholder="E-post" value="<?php echo $email; ?>">
+		<span><?php echo $emailerror; ?></span>
+		<br>
+		<label for="passwordinput">Salasõna: </label>
+		<input type="password" name="passwordinput" id="passwordinput" placeholder="Salasõna">
+		<span><?php echo $passworderror; ?></span>
+		<br>
+		<input type="submit" name="submituserdata" value="Sisselogimine">
+	</form>
   <hr>
   <?php echo $imghtml; ?>
 </body>
